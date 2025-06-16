@@ -20,7 +20,7 @@ const client = new OpenAI({
 app.get("/health", (req, res) => {
   console.log("Health check...")
   res.json({
-    "health": "API is working"
+    "status": "OK"
   })
 })
 
@@ -98,21 +98,17 @@ app.post("/prompt", async (req, res) => {
     // console.log(req.body.messages[0].content) 
     // console.log(Object.keys(req)) 
 
-    const response = await fetch("http://localhost:1234/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "bartowski/Qwen2.5-32B-Instruct-GGUF",
-          messages: [
-            {
-                role: "system",
-                content: prompt_msg,
-            },
-          ],
-        }),
-      });
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: role,
+          content: prompt_msg,
+        },
+      ],
+    });
 
-    const data = await response.json();
+    const data = await completion.json();
     // console.log(data.choices[0].message.content)
     const systemPromptResponse = data.choices[0].message.content;
 
