@@ -3,9 +3,9 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 import OpenAI from "openai";
-import { isEmptyObj } from "openai/_vendor/zod-to-json-schema/util.mjs";
 
-const API_KEY = import.meta.env.VITE_API_KEY;
+const RAILWAY_API_URL = import.meta.env.VITE_RAILWAY_API_URL;
+console.log(RAILWAY_API_URL)
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -40,7 +40,7 @@ function App() {
 
     try {
       // Then use previous messages + new message to send to server
-      const response = await fetch("https://llmchat-production-c834.up.railway.app/qwen", {
+      const response = await fetch(`${RAILWAY_API_URL}/qwen`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -91,8 +91,8 @@ function App() {
         return updatedMessages;
       });
 
-      console.log("bootPrompt(messages)", messages);
-      const bootStrapResponse = await fetch("https://llmchat-production-c834.up.railway.app/prompt", {
+      console.log("bootPrompt(messages)", prompt_message);
+      const bootStrapResponse = await fetch(`${RAILWAY_API_URL}/prompt`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -132,9 +132,10 @@ function App() {
 
   const checkHealth = async () => {
     try {
-      const checkHealthResponse = await fetch("https://llmchat-production-c834.up.railway.app/health", 
+      const checkHealthResponse = await fetch(`${RAILWAY_API_URL}/health`, 
       {
         method: "GET",
+        headers: { "Content-Type": "application/json" },
       }
     )
     if (!checkHealthResponse.ok) {
@@ -142,7 +143,7 @@ function App() {
       error.status = checkHealthResponse.status;
       throw error
     } else {
-      const response = checkHealthResponse.json();
+      const response = await checkHealthResponse.json();
       console.log(response)
     }
     } catch (error) {
