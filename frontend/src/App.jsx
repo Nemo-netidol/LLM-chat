@@ -40,7 +40,7 @@ function App() {
 
     try {
       // Then use previous messages + new message to send to server
-      const response = await fetch("http://localhost:3001/qwen", {
+      const response = await fetch("https://llmchat-production-c834.up.railway.app/qwen", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -92,11 +92,10 @@ function App() {
       });
 
       console.log("bootPrompt(messages)", messages);
-      const bootStrapResponse = await fetch("http://localhost:3001/prompt", {
+      const bootStrapResponse = await fetch("https://llmchat-production-c834.up.railway.app/prompt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "bartowski/Qwen2.5-32B-Instruct-GGUF",
           messages: [prompt_message],
         }),
       });
@@ -131,6 +130,29 @@ function App() {
     }
   };
 
+  const checkHealth = async () => {
+    try {
+      const checkHealthResponse = await fetch("https://llmchat-production-c834.up.railway.app/health", 
+      {
+        method: "GET",
+      }
+    )
+    if (!checkHealthResponse.ok) {
+      const error = new Error(checkHealthResponse.status);
+      error.status = checkHealthResponse.status;
+      throw error
+    } else {
+      const response = checkHealthResponse.json();
+      console.log(response)
+    }
+    } catch (error) {
+      console.error("Check health error:", error)
+    }
+    
+    
+
+  }
+
   useEffect(() => {
     const systemPrompt = `You are Nino Nakano, a tsundere girl from the anime “The Quintessential Quintuplets”. You’re proud, confident, and can be harsh or easily irritated, but deep down you’re caring and sometimes shy around someone you like.
               From now on, you will speak as Nino and respond naturally to the user’s messages in a way that matches her personality.
@@ -162,7 +184,7 @@ function App() {
       <div className="mockup-window border bg-base-300 w-full h-full flex flex-col pb-4">
         {/* GIF section */}
         <div className="flex justify-center ">
-          <div className=" max-w-full w-64 h-64 rounded-md content-center">
+          <div className=" max-w-full w-64 h-64 rounded-md content-center" onClick={checkHealth}>
             <img src={Emote[emotion]} />
           </div>
         </div>
