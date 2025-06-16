@@ -20,7 +20,7 @@ const client = new OpenAI({
 app.get("/health", (req, res) => {
   console.log("Health check...")
   res.json({
-    "health": "API is working"
+    "status": "OK"
   })
 })
 
