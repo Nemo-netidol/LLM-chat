@@ -5,7 +5,8 @@ import "./App.css";
 import OpenAI from "openai";
 import { isEmptyObj } from "openai/_vendor/zod-to-json-schema/util.mjs";
 
-const API_KEY = import.meta.env.VITE_API_KEY;
+const API_URL = import.meta.env.VITE_API_KEY;
+API_URL = "https://localhost:8080"
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -45,7 +46,7 @@ function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "bartowski/Qwen2.5-32B-Instruct-GGUF",
-          messages: [...messages, newMessage], // use state snapshot (not perfect, but works well in most cases)
+          messages: [...messages, newMessage], 
         }),
       });
 
