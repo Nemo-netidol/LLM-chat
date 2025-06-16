@@ -108,14 +108,21 @@ app.post("/prompt", async (req, res) => {
       ],
     });
 
-    res.json({
-       "content": completion.choices[0].message.content,
-       "emotion": completion.choices[0].message.emotion
-      });
-      console.log(completion.choices[0].message.content)
+    const data = await completion.json();
+    // console.log(data.choices[0].message.content)
+    const systemPromptResponse = data.choices[0].message.content;
+
+    const jsonString = systemPromptResponse.replace(/```json\n?/, '').replace(/```$/, '').trim();
+    const parsed = JSON.parse(jsonString);
+
     // console.log("systemPromptResponse:", parsed); 
     // console.log("Express content:", parsed.response)
     // console.log("Express emotion:", parsed.emotion)
+
+    res.json({
+       "content": parsed.response,
+       "emotion": parsed.emotion
+      }); 
 
   } catch (error) {
     console.log("Express cannot send message")
