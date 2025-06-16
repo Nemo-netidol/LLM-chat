@@ -5,6 +5,7 @@ import "./App.css";
 import OpenAI from "openai";
 
 const API_URL = import.meta.env.VITE_RAILWAY_API_URL;
+API_URL = "localhost:8080"
 console.log(API_URL)
 
 function App() {
@@ -39,15 +40,17 @@ function App() {
     setInputValue("");
 
     try {
+
       // Then use previous messages + new message to send to server
-      const response = await fetch(`${API_URL}/qwen`, {
+      const response = await fetch(`${API_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "bartowski/Qwen2.5-32B-Instruct-GGUF",
-          messages: [...messages, newMessage], // use state snapshot (not perfect, but works well in most cases)
+          messages: [...messages, newMessage], 
         }),
       });
+
+
 
       if (!response.ok) {
         const error = new Error(response.status);
@@ -139,6 +142,7 @@ function App() {
       }
     )
     if (!checkHealthResponse.ok) {
+      console.log("Error health!!!")
       const error = new Error(checkHealthResponse.status);
       error.status = checkHealthResponse.status;
       throw error
