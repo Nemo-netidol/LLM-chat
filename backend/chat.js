@@ -5,7 +5,7 @@ import cors from 'cors';
 
 dotenv.config();
 
-console.log(process.env.API_KEY)
+// console.log(process.env.API_KEY)
 
 const app = express();
 const port = process.env.PORT;
@@ -108,9 +108,9 @@ app.post("/prompt", async (req, res) => {
       ],
     });
 
-    const data = await completion.json();
-    // console.log(data.choices[0].message.content)
-    const systemPromptResponse = data.choices[0].message.content;
+    // console.log(completion.choices[0].message)
+    const systemPromptResponse = completion.choices[0].message.content;
+  
 
     const jsonString = systemPromptResponse.replace(/```json\n?/, '').replace(/```$/, '').trim();
     const parsed = JSON.parse(jsonString);
