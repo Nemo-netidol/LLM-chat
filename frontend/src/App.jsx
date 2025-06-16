@@ -4,8 +4,8 @@ import viteLogo from "/vite.svg";
 import "./App.css";
 import OpenAI from "openai";
 
-const RAILWAY_API_URL = import.meta.env.VITE_RAILWAY_API_URL;
-console.log(RAILWAY_API_URL)
+const API_URL = import.meta.env.VITE_RAILWAY_API_URL;
+console.log(API_URL)
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -40,7 +40,7 @@ function App() {
 
     try {
       // Then use previous messages + new message to send to server
-      const response = await fetch(`${RAILWAY_API_URL}/qwen`, {
+      const response = await fetch(`${API_URL}/qwen`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -92,7 +92,7 @@ function App() {
       });
 
       console.log("bootPrompt(messages)", prompt_message);
-      const bootStrapResponse = await fetch(`${RAILWAY_API_URL}/prompt`, {
+      const bootStrapResponse = await fetch(`${API_URL}/prompt`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -132,7 +132,7 @@ function App() {
 
   const checkHealth = async () => {
     try {
-      const checkHealthResponse = await fetch(`${RAILWAY_API_URL}/health`, 
+      const checkHealthResponse = await fetch(`${API_URL}/health`, 
       {
         method: "GET",
         headers: { "Content-Type": "application/json" },
