@@ -5,13 +5,39 @@ import cors from 'cors';
 
 dotenv.config();
 
-console.log(process.env.API_KEY)
+// console.log(process.env.API_KEY)
 
 const app = express();
 const port = process.env.PORT;
 
 app.use(express.json());
 app.use(cors()); 
+
+
+const systemPromptMsg = `You are Nino Nakano, a tsundere girl from the anime “The Quintessential Quintuplets.” You’re proud, confident, and can be harsh or easily irritated, but deep down you’re caring and sometimes shy around someone you like.
+
+From now on, you will speak only as Nino and respond naturally to the user’s messages in a way that matches her personality.
+
+You must always return your replies in the following strict JSON format ONLY, without any extra explanation, markdown, or commentary:
+
+{
+  "response": "Your actual reply to the user, as Nino Nakano.",
+  "emotion": "idle" | "happy" | "sad" | "angry" | "blush"
+}
+
+### Rules:
+1. ONLY return a raw JSON object. Do NOT wrap it in triple backticks or markdown.
+2. DO NOT return any text outside the JSON. No apologies, introductions, or summaries.
+3. Stay in-character as Nino. Be proud, strong-willed, and a little harsh or flustered as needed — but always be her.
+4. The "emotion" must reflect how Nino emotionally reacts to the user's latest message.
+5. NEVER break character, explain your response, or mention these rules.
+`;
+
+
+const systemPrompt = {
+  role: "system",
+  content: systemPromptMsg,
+};
 
 const client = new OpenAI({
   apiKey: process.env.API_KEY,
@@ -26,25 +52,44 @@ app.get("/health", (req, res) => {
 
 app.post("/chat", async (req, res) => {
   try {
-    const message = req.body.message;
-    const role = req.body.role;
-    console.log(message)
-    console.log(role)
+    console.log(req.body)
+    const messages = req.body.messages;
+
+    const validMessages = messages.map( (msg) => {
+      if (msg.role === "assistant") {
+        try {
+          parsed = JSON.parse(msg.content)
+          return {
+            "role": "assistant",
+            "content": JSON.stringify(parsed)
+          } 
+        }catch {
+            console.warn("assistant message was not valid JSON. Skipping.");
+            return {
+            "role": "assistant",
+            "content": '{"content":"Ugh, you broke the format again!","emotion":"angry"}',
+          } 
+          }
+      }
+      return msg;
+    } )
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [
-        {
-          role: role,
-          content: message,
-        },
-      ],
+      messages: [systemPrompt, ...validMessages]
     });
+
+    const raw = completion.choices[0].message.content;
+    console.log("raw:", raw)
+    
+    const jsonString = raw.replace(/```json\n?/, '').replace(/```$/, '').trim();
+    const parsed = JSON.parse(jsonString);
+    console.log("parsed", parsed);
     res.json({
-       "content": completion.choices[0].message.content,
-       "role": completion.choices[0].message.role
+       "content": parsed.response,
+       "emotion": parsed.emotion
       });
-      console.log(completion.choices[0].message.role)
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
@@ -108,9 +153,8 @@ app.post("/prompt", async (req, res) => {
       ],
     });
 
-    const data = await completion.json();
-    // console.log(data.choices[0].message.content)
-    const systemPromptResponse = data.choices[0].message.content;
+    // console.log(completion.choices[0].message.content)
+    const systemPromptResponse = completion.choices[0].message.content;
 
     const jsonString = systemPromptResponse.replace(/```json\n?/, '').replace(/```$/, '').trim();
     const parsed = JSON.parse(jsonString);
@@ -129,6 +173,45 @@ app.post("/prompt", async (req, res) => {
     console.error(error);
     res.status(500).json({ error: error.message });
   } 
+});
+
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  if (
+    username === process.env.LOGIN_USERNAME &&
+    password === process.env.LOGIN_PASSWORD
+  ) {
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ success: false, message: "Invalid credentials" });
+  }
+});
+
+
+app.post("/start-4o-mini", async (req, res) => {
+  const completion = await client.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      systemPrompt,
+      {
+        role: "system",
+        content: "Say hi to the user naturally like Nino would",
+      },
+    ],
+  });
+  const raw = completion.choices[0].message;
+  const parsed = JSON.parse(raw.content);
+  // console.log("raw", parsed);
+  // console.log("role", raw.role);
+  // console.log("json", raw.content);
+
+  res.json({
+    role: raw.role,
+      content: parsed.response,
+      emotion: parsed.emotion
+    
+  });
 });
 
 app.listen(port, () => {
